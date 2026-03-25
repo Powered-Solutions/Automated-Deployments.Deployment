@@ -1,0 +1,47 @@
+# Template parameters - passed in when this template is called from another YAML file
+parameters:
+  method: ""                # HTTP method to use for the request (e.g., GET, POST, PATCH, DELETE)
+  token: ""                 # Access token (Bearer token used for authentication against Power Automate)
+  pipelinepowerautomate: "" # URL/endpoint of the Power Automate flow to call
+  displayname: ""           # Friendly display name for the pipeline step (visible in pipeline logs)
+  requestBody: "{}"         # Request body payload in JSON format (default is an empty object)
+
+steps:
+  # Step to call a Power Automate Flow using PowerShell
+  - task: PowerShell@2
+    displayName: ${{ parameters.displayname }}   # Friendly log name in pipeline
+    inputs:
+      targetType: "inline"      # Inline PowerShell script (no external file required)
+      script: |
+            # Assign request body from parameters
+            $requestBody = '${{ parameters.requestBody }}'
+            
+            # Assign the Power Automate Flow endpoint
+            $uri = '${{ parameters.pipelinepowerautomate }}'
+
+            # Log the URI for debugging
+            Write-Host "Calling Power Automate Flow at: $uri"
+            
+            # Prepare request headers
+            $headers = @{                
+                'Content-Type'  = 'application/json'
+            }
+
+            try {
+                # Attempt to send HTTP request to Power Automate Flow
+                $response = Invoke-RestMethod -Uri $uri -Method ${{ parameters.method }} -Headers $headers -Body $requestBody
+
+                # Log success and response content
+                Write-Host "✅ Successfully invoked Power Automate Flow."
+                Write-Host "Response:"
+                Write-Host $response
+            }
+            catch {
+                # Log error details
+                Write-Host "❌ Failed to invoke Power Automate Flow."
+                Write-Host "Error Message: $($_.Exception.Message)"
+                Write-Host "Stack Trace: $($_.ScriptStackTrace)"
+                
+                # Fail the task explicitly so pipeline doesn’t continue silently
+                exit 1
+            }
