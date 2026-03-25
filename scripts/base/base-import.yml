@@ -1,0 +1,43 @@
+trigger:
+- none
+
+parameters:
+- name: comments
+  type: string
+  default: @comments
+- name: recordid
+  type: string
+  default: @recordid  
+- name: projectid
+  type: string
+  default: @projectid
+- name: queuedbyname
+  type: string
+  default: @queuedbyname
+- name: queuedbyemail
+  type: string
+  default: @queuedbyemail
+- name: pipelinepowerautomate
+  type: string
+  default: @pipelinepowerautomate
+- name: components
+  type: object
+  default:
+  @components  
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  -group: 'cicd_deployment_app'
+
+stages:
+  - template: ../configuration/templates/stages/import-orchestrator-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
