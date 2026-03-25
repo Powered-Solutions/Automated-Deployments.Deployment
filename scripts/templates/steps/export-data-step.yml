@@ -1,0 +1,29 @@
+parameters:
+  env_spn: ''
+  schema_file: ''
+  packed_location: ''
+  unpacked_location: ''
+  filename: ''
+
+
+steps:
+  - task: PowerPlatformExportData@2
+    displayName: 'Exporting data | ${{ parameters.filename }}.zip'
+    inputs:
+      authenticationType: 'PowerPlatformSPN'
+      PowerPlatformSPN: '${{ parameters.env_spn }}'
+      Environment: '$(BuildTools.EnvironmentUrl)'
+      SchemaFile: '${{ parameters.schema_file }}'
+      DataFile: '${{ parameters.packed_location }}/${{ parameters.filename }}.zip'
+      Overwrite: true
+  
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '${{ parameters.packed_location }}/${{ parameters.filename }}.zip'
+      destinationFolder: '${{ parameters.unpacked_location }}'
+      cleanDestinationFolder: true
+      overwriteExistingFiles: true
+
+  - template: ../common/insert-log.yml
+    parameters:
+      comments: "Successfully exported and checked in with file name ${{ parameters.filename }}.zip"
