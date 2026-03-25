@@ -1,0 +1,39 @@
+steps:
+  # Step to commit all solution changes back into the repository
+  - script: |
+      echo "=== Starting commit of solution changes ==="
+
+      echo "Configuring Git identity..."
+      git config --global user.email "$(queuedbyemail)" 
+      git config --global user.name "$(queuedbyname)"
+
+      echo "Pulling latest changes from development branch..."
+      git pull development
+
+      echo "Switching to development branch..."
+      git checkout -B development
+
+      echo "Staging all changes..."
+      git add --all
+
+      echo "Committing changes with build and developer comments..."
+      git commit -m "Build - $(Build.BuildNumber) | Release deployment | Developer comments - $(comments)"
+
+      echo "Pushing changes to remote development branch..."
+      git push --set-upstream origin development
+
+      echo "=== Commit process completed successfully ==="
+    displayName: 'Check-in Solution Changes'
+
+  # Step to publish the pipeline artifacts for later stages (e.g., release)
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Build Artifacts to $(Build.ArtifactStagingDirectory)'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Log check-in and Publish"  # Friendly log entry title for tracking
+      message: "Solution ${{ parameters.schemaname }} is checking and published as artifact"    # Log message text sent to Power Automate
