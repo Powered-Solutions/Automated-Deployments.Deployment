@@ -1,0 +1,96 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []   # list of components (solutions, config data, portals, etc.)
+
+jobs:
+- job: ReleaseJob
+  displayName: "Import Components Job"
+  variables:    
+    comments: "${{ parameters.comments }}"
+    recordid: "${{ parameters.recordid }}"
+    projectid: "${{ parameters.projectid }}"
+    queuedbyname: "${{ parameters.queuedbyname }}"
+    queuedbyemail: "${{ parameters.queuedbyemail }}"
+    pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+    ACCESS_TOKEN: $[ stageDependencies.PreBuild.GetDataverseToken.outputs['GetToken.ACCESS_TOKEN'] ]
+  pool:
+    vmImage: 'windows-latest'
+
+  steps:
+    # ---------------------------------------
+    # 1. Checkout repository
+    # ---------------------------------------
+    - template: ../steps/checkout.yml
+
+    # ---------------------------------------
+    # 2. Install required tools (PAC CLI, etc.)
+    # ---------------------------------------
+    - template: ../steps/install-tool.yml
+
+    # ---------------------------------------
+    # 3. Loop through components list
+    # Each component is handled differently 
+    # based on its type (solution/config/portal)
+    # ---------------------------------------
+    - ${{ each component in parameters.components }}:
+
+      # ---------- Export Solution ----------
+      - ${{ if eq(component.type, 'solution') }}:
+        # Update solution version before export
+        - template: ../steps/update-solution-version.yml          
+          parameters:
+            version: "${{ component.version }}"
+            source: "${{ component.source }}"
+            schemaname: "${{ component.schemaname }}"
+
+        # Export solution (Managed or Unmanaged)
+        - template: ../steps/export-solution.yml          
+          parameters:
+            version: "${{ component.version }}"
+            source: "${{ component.source }}"
+            schemaname: "${{ component.schemaname }}"
+            managed: "${{ component.managed }}"
+            # Conditional filename based on managed/unmanaged
+            ${{ if eq(component.managed, true) }}:
+              filename: "${{ component.name }}_managed"
+            ${{ if ne(component.managed, true) }}:
+              filename: "${{ component.name }}_unmanaged"
+
+        # Unpack solution into source control
+        - template: ../steps/unpack-solution.yml         
+          parameters:
+            version: "${{ component.version }}"
+            schemaname: "${{ component.schemaname }}"
+            devopslocation: "${{ component.devopslocation }}"
+            ${{ if eq(component.managed, true) }}:
+              filename: "${{ component.name }}_managed"
+            ${{ if ne(component.managed, true) }}:
+              filename: "${{ component.name }}_unmanaged"
+            ${{ if eq(component.managed, true) }}:
+              solutiontype: "Managed"
+            ${{ if ne(component.managed, true) }}:
+              solutiontype: "Unmanaged"        
+
+      # ---------- Export Config Data ----------
+      - ${{ if eq(component.type, 'data') }}:
+        - template: ../build/export-data.yml          
+          parameters:
+            env_spn: "${{ component.export_eve }}"
+            schema_file: "${{ component.configschemafile }}"
+            packed_location: "${{ component.configdatapacked }}"
+            unpacked_location: "${{ component.configdataunpacked }}"
+            filename: "configdata"
+
+    # ---------------------------------------
+    # 4. Final step: check-in & publish changes
+    # ---------------------------------------
+    - template: ../steps/checkin-and-publish.yml
+      parameters:
+        comments: "${{ parameters.comments }}"
+        queuedbyname: "${{ parameters.queuedbyname }}"
+        queuedbyemail: "${{ parameters.queuedbyemail }}"
