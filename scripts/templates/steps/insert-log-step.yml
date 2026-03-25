@@ -1,0 +1,21 @@
+# Template parameters - values passed when this template is called
+parameters:
+  displayName: ''   # A friendly name for this step (will appear in pipeline logs)
+  message: ''       # Custom message text that will be sent to Power Automate
+steps:
+
+# Step to call the Power Automate flow for logging progress/events
+  - template: ../steps/call-pa-step.yml
+    parameters:
+      method: "Post"                                    # Always use POST when calling the flow
+      token: $(ACCESS_TOKEN)                            # Dataverse/Power Platform access token (retrieved in an earlier stage/job)
+      pipelinepowerautomate: "$(pipelinepowerautomate)"  # Power Automate flow endpoint URL (passed into pipeline variables)
+      displayname: "${{ parameters.displayName }}"      # Step name, forwarded to the sub-template for consistency
+      requestBody: |
+        {
+          "eventType": "log.create",
+          "recordid": "$(recordid)",
+          "projectid": "$(projectid)",
+          "error": false,
+          "message": "${{ parameters.message }}"
+        }
