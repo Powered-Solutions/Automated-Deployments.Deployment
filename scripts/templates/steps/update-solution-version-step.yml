@@ -1,0 +1,24 @@
+# Template parameters - passed when this template is used
+parameters:
+  version: ''     # New version number to set for the target solution (e.g., 1.0.0.2)
+  source: ''      # Service connection (PowerPlatformSPN) that connects to the Dataverse environment
+  schemaname: ''  # Unique schema (logical) name of the solution whose version will be updated
+
+steps:
+  # Step to update the solution version in the target Dataverse environment
+  - task: PowerPlatformSetSolutionVersion@2
+    inputs:
+      authenticationType: PowerPlatformSPN                   # Auth type - uses a Service Principal connection
+      PowerPlatformSPN: '${{ parameters.source }}'            # Reference to the Power Platform Service Connection
+      SolutionName: '${{ parameters.schemaname }}'            # Name of the solution being updated
+      SolutionVersionNumber: '${{ parameters.version }}'      # New version number applied to the solution
+    displayName: 'Updating solution ${{ parameters.schemaname }} version to ${{ parameters.version }}'
+    timeoutInMinutes: 15          # Maximum time allowed for this task
+    retryCountOnTaskFailure: 1    # Retry once if the update fails
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Update solution version for ${{ parameters.schemaname }}"  # Log entry title for tracking
+      message: "Successfully updated solution version for ${{ parameters.schemaname }} updated to ${{ parameters.version }}"  
+        # Log message text sent to Power Automate for tracking/monitoring
