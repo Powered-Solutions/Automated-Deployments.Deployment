@@ -1,0 +1,42 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []
+
+stages:
+  # Pre-Export Stage (Using Template)
+  - template: pre-export-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
+
+  # Export Stage (Using Template)
+  - template: export-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
+
+  # Post Export Stage (Using Template)
+  - template: post-export-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
