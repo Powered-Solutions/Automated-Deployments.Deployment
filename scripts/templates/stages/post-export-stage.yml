@@ -1,0 +1,18 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []
+
+stages:
+  - stage: PostBuild
+    displayName: "Post Build"
+    dependsOn: Build
+    jobs:
+      - job: Compilecode
+        displayName: "Compile code"
+        steps:
+          - script: echo "Compling code in build job"
