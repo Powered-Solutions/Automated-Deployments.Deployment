@@ -1,0 +1,29 @@
+# Template parameters - passed in when this template is used
+parameters:
+  version: ''        # Version of the solution being unpacked (for tracking/logging purposes)
+  schemaname: ''     # Schema (unique) name of the solution to be unpacked
+  devopslocation: '' # Target folder path in DevOps repo where unpacked solution components will be stored
+  filename: ''       # Name of the exported solution file (without .zip extension)
+  solutiontype: ''   # Type of solution (Managed or Unmanaged) to indicate unpacking mode
+
+steps:
+  # Step to unpack a Power Platform solution into source control (individual components/files)
+  - task: PowerPlatformUnpackSolution@2
+    displayName: 'Unpacking solution ${{ parameters.schemaname }} | ${{ parameters.version }}'
+    inputs:
+      SolutionInputFile: '$(Build.ArtifactStagingDirectory)/solutions/${{ parameters.filename }}.zip'  
+        # Path to the exported solution .zip file (from previous export step)
+      SolutionTargetFolder: '${{ parameters.devopslocation }}/${{ parameters.schemaname }}'  
+        # Destination folder where the solution will be unpacked
+      SolutionType: '${{ parameters.solutiontype }}'  
+        # Defines if unpacking a Managed or Unmanaged solution
+      ProcessCanvasApps: true  
+        # Ensures Canvas Apps inside the solution are processed/unpacked properly
+    timeoutInMinutes: 60         # Maximum time allowed for the unpacking step
+    retryCountOnTaskFailure: 1   # Retry once if unpacking fails
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Log Unpack Solution ${{ parameters.schemaname }}"  # Friendly log entry title for tracking
+      message: "Unpacked Solution ${{ parameters.schemaname }}"    # Log message text sent to Power Automate
