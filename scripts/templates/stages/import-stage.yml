@@ -1,0 +1,25 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []   # this is an array, not a string
+
+stages:
+  - stage: Build
+    displayName: Build
+    dependsOn: PreBuild    
+
+    jobs:
+      # get dataverse token and log
+      - template: ../jobs/import-job.yml
+        parameters:
+          comments: "${{ parameters.comments }}"
+          recordid: "${{ parameters.recordid }}"
+          projectid: "${{ parameters.projectid }}"
+          queuedbyname: "${{ parameters.queuedbyname }}"
+          queuedbyemail: "${{ parameters.queuedbyemail }}"
+          pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+          components: ${{ parameters.components }}
