@@ -1,0 +1,20 @@
+parameters:
+  location: ''
+  sol_name: ''
+  filename: ''
+  solutiontype: ''
+
+steps:
+  - task: PowerPlatformPackSolution@2
+    displayName: 'Packing solution ${{ parameters.sol_name }}'
+    inputs:
+      SolutionSourceFolder: '${{ parameters.location }}/${{ parameters.sol_name }}'
+      SolutionOutputFile: '$(Pipeline.Workspace)/drop/solutions/${{ parameters.filename }}.zip'
+      SolutionType: '${{ parameters.solutiontype }}'
+      ProcessCanvasApps: true
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log.yml
+    parameters:
+      displayname: "Pack Solution ${{ parameters.schemaname }}"  # Friendly log entry title for tracking
+      message: "Successfully packed solution ${{ parameters.schemaname }}"    # Log message text sent to Power Automate
