@@ -1,0 +1,42 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []
+
+stages:
+  # Pre-Release Stage (Using Template)
+  - template: pre-import.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
+
+  # Release Stage (Using Template)
+  - template: import.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
+
+  # Post-Release Stage (Using Template)
+  - template: post-import.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
