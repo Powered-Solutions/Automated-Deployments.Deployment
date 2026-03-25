@@ -1,0 +1,23 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  queuedbyname: ""
+  queuedbyemail: ""
+  pipelinepowerautomate: ""
+  components: []
+
+stages:
+- stage: PreBuild
+  displayName: "Pre-Build Stage"
+  isSkippable: false
+
+  jobs:
+  #get dataverse token and log
+  - template: ../jobs/get-dataverse-token.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"      
+      projectid: "${{ parameters.projectid }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+        
