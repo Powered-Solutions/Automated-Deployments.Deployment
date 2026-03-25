@@ -1,0 +1,11 @@
+steps:
+  - checkout: self
+    clean: true                  # Ensures a clean clone (removes previous artifacts)
+    persistCredentials: true     # Keeps credentials for future Git operations (if needed)
+    displayName: "Checkout repository"  # Friendly label for this step in the pipeline UI
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Log check-in and Publish"  # Friendly log entry title for tracking
+      message: "Solution ${{ parameters.schemaname }} is checking and published as artifact"    # Log message text sent to Power Automate
