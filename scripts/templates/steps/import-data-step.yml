@@ -1,0 +1,16 @@
+parameters:
+  import_eve: ''
+  packed_location: ''
+  filename: ''
+
+steps:
+    - task: PowerPlatformImportData@2
+      displayName: 'Importing data | ${{ parameters.filename }}.zip'
+      inputs:
+        authenticationType: 'PowerPlatformSPN'
+        PowerPlatformSPN: '${{ parameters.import_eve }}'
+        DataFile: '${{ parameters.packed_location }}/${{ parameters.filename }}.zip'
+
+    - template: ../common/insert-log.yml
+      parameters:
+        comments: "Successfully imported data. File location ${{ parameters.filename }}.zip"
