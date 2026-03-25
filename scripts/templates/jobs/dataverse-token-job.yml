@@ -1,0 +1,27 @@
+parameters:
+  comments: ""
+  recordid: ""
+  projectid: ""
+  pipelinepowerautomate: ""
+
+jobs:
+- job: 'GetDataverseToken'
+  displayName: 'Get Dataverse Token'
+  timeoutInMinutes: 60
+  
+  variables:
+    pipelinepowerautomate: ${{ parameters.pipelinepowerautomate }}
+    comments: ${{ parameters.comments }}
+    recordid: ${{ parameters.recordid }}
+    projectid: ${{ parameters.projectid }}
+
+
+  steps:
+  #GET TOKEN TO EXECUTE POWER AUTOMATE
+  - template: ../steps/get-token-step.yml
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Log acquisition of token"  # Friendly log entry title for tracking
+      message: "ataverse token acquired successfully"    # Log message text sent to Power Automate
