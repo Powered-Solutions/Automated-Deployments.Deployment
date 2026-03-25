@@ -1,0 +1,30 @@
+# Template parameters - passed in when this template is used
+parameters:
+  version: ''       # Version of the solution to export (used for tracking/logging)
+  source: ''        # Service connection / environment name (PowerPlatformSPN) where the solution exists
+  schemaname: ''    # Schema (unique) name of the solution to be exported
+  managed: ''       # Boolean flag (true/false) whether to export as Managed or Unmanaged
+  filename: ''      # Output file name (without .zip extension) for the exported solution
+
+steps:
+
+  # Step to export a Power Platform solution using the official task
+  - task: PowerPlatformExportSolution@2
+    displayName: 'Export Power Platform Solution ${{ parameters.schemaname }} | ${{ parameters.version }}'
+    inputs:
+      authenticationType: 'PowerPlatformSPN'                            # Use service principal authentication
+      PowerPlatformSPN: '${{ parameters.source }}'                       # Service connection (from parameters)
+      SolutionName: '${{ parameters.schemaname }}'                       # Solution to export
+      SolutionOutputFile: '$(Build.ArtifactStagingDirectory)/solutions/${{ parameters.filename }}.zip'  
+                                                                         # Output path + filename
+      Managed: '${{ parameters.managed }}'                               # Export as Managed or Unmanaged
+      AsyncOperation: true                                               # Run export asynchronously
+      MaxAsyncWaitTime: '150'                                            # Maximum wait time (minutes) for async export
+    timeoutInMinutes: 60                                                 # Task timeout
+    retryCountOnTaskFailure: 1                                           # Retry once if export fails
+
+  # Step to log progress in Power Automate (custom template call)
+  - template: ../steps/insert-log-step.yml
+    parameters:
+      displayname: "Log Export Solution ${{ parameters.schemaname }}"  # Friendly log entry title
+      message: "Solution ${{ parameters.schemaname }} exported successfully"      # Log message text sent to Power Automate
