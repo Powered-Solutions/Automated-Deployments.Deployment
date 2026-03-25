@@ -1,0 +1,57 @@
+trigger:
+- none
+
+parameters:
+- name: comments
+  type: string
+  default: test
+- name: recordid
+  type: string
+  default: 98670200-3414-f111-8341-6045bde5b806  
+- name: projectid
+  type: string
+  default: 203e4bd5-918e-f011-b4cc-002248944190
+- name: queuedbyname
+  type: string
+  default:  Saurabh Pimpalgaonkar
+- name: queuedbyemail
+  type: string
+  default: spimpalgaonkar@kpmgmelaustralia.onmicrosoft.com
+- name: pipelinepowerautomate
+  type: string
+  default: https://e1b156e7f796ed098029b6d8b744c1.c4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d69514c650a4439b8cc6048c9e596cea/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Fi7xkXd1wnwfrBjsPccXzN_7Diz2_tqZi-ZnmdwD_5k
+- name: components
+  type: object
+  default:
+   - type: solution
+     name: Bug62_1_0_0_1
+     datalocation: 
+     schemafilelocation: 
+     schemaname: Bug62
+     currentversion: 1.0.0.0
+     version: 1.0.0.1
+     source: Dev SPN Connection
+     target: Packaging SPN Connection
+     managed: False
+     devopslocation: deployment/artifacts/solutions/unmanaged
+     order: 1
+     componentvalue: 
+     configfile: 
+     skiplowerversion: false  
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  -group: 'cicd_deployment_app'
+
+stages:
+  - template: ../configuration/templates/stages/export-orchestrator-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
