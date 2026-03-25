@@ -1,0 +1,36 @@
+parameters:
+  import_eve: ''
+  sol_name: ''
+  filename: ''
+  configfile: ''
+
+steps:
+  - task: PowerPlatformImportSolution@2
+    displayName: 'Importing solution ${{ parameters.sol_name }}.zip using config file'
+    inputs:
+      authenticationType: 'PowerPlatformSPN'
+      PowerPlatformSPN: '${{ parameters.import_eve }}'
+      SolutionInputFile: '$(Pipeline.Workspace)/drop/solutions/${{ parameters.filename }}.zip'
+      AsyncOperation: true
+      MaxAsyncWaitTime: '200'
+      OverwriteUnmanagedCustomizations: true
+      ConvertToManaged: true
+      PublishCustomizationChanges: true
+      SkipLowerVersion: false
+      StageAndUpgrade: false
+      UseDeploymentSettingsFile: true
+      DeploymentSettingsFile: '${{ parameters.configfile }}'
+
+
+  - template: ../common/insert-log.yml
+    parameters:
+      comments: "Imported solution ${{ parameters.filename }}.zip successfully"
+
+  - template: ../common/call-power-automate.yml
+    parameters:
+      url: '$(pa_version_log_url)'
+      requestBody: |
+        {
+          "schemaname": "${{ parameters.sol_name }}",
+          "buildid": "$(Build.BuildId)"
+        }
