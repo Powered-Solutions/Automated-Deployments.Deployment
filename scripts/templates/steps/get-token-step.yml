@@ -1,0 +1,73 @@
+steps:
+  # Step to fetch OAuth token using client credentials flow (no masking)
+  - task: PowerShell@2
+    name: GetToken
+    displayName: "Get OAuth Token"
+    inputs:
+      targetType: "inline"
+      script: |
+            Write-Host "=== Starting OAuth Token Retrieval Process ==="
+
+            # Construct the URL for OAuth token request
+            $tokenUrl = "https://login.microsoftonline.com/$(tenantId)/oauth2/v2.0/token"
+            Write-Host "Token URL $tokenUrl"
+
+            # Prepare the request body for client credentials flow
+            $body = @{
+                client_id     = "$(clientId)"          # Azure AD App Registration Client ID
+                client_secret = "$(clientsecret)"      # Azure AD App Registration Client Secret
+                grant_type    = "client_credentials"   # OAuth flow type
+                scope         = "$(resource)/.default" # Resource scope (e.g., Dataverse or API + '/.default')
+            }
+
+            Write-Host "Request Body Prepared with:"
+            Write-Host " - client_id $(clientId)"
+            Write-Host " - client_secret $(clientsecret)"
+            Write-Host " - grant_type client_credentials"
+            Write-Host " - scope $(resource)/.default"
+
+            # Retry logic configuration
+            $maxRetries = 3
+            $retryDelay = 5   # seconds
+            $access_token = $null
+
+            for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+                try {
+                    Write-Host "Attempt $attempt Requesting OAuth token from Azure AD..."
+
+                    # Send POST request to Azure AD to obtain access token
+                    $response = Invoke-RestMethod -Uri $tokenUrl -Method Post -ContentType "application/x-www-form-urlencoded" -Body $body
+
+                    # Check if token is in response
+                    if ($response -and $response.access_token) {
+                        $access_token = $response.access_token
+                        Write-Host "✅ Access Token Retrieved Successfully on attempt $attempt"
+                        Write-Host "Access Token $access_token"   # <<< showing raw token
+                        break
+                    } else {
+                        Write-Warning "⚠️ Access token not found in response. Attempt $attempt failed."
+                    }
+                }
+                catch {
+                    Write-Warning "❌ Error during token request on attempt $attempt $($_.Exception.Message)"
+                }
+
+                # Wait before retrying, unless it's the last attempt
+                if ($attempt -lt $maxRetries) {
+                    Write-Host "Waiting $retryDelay seconds before retrying..."
+                    Start-Sleep -Seconds $retryDelay
+                }
+            }
+
+            # Final check after retry loop
+            if ($access_token) {
+                # Save the token to a pipeline variable (not masked)
+                Write-Host "Saving token to pipeline variable ACCESS_TOKEN (not masked)..."
+                Write-Host "##vso[task.setvariable variable=ACCESS_TOKEN;isOutput=true]$access_token"
+                Write-Host "✅ Access token saved successfully."
+            } else {
+                Write-Error "❌ Failed to retrieve the access token after $maxRetries attempts."
+                exit 1
+            }
+
+            Write-Host "=== OAuth Token Retrieval Process Completed ==="
