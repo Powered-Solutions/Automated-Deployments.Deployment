@@ -1,0 +1,57 @@
+trigger:
+- none
+
+parameters:
+- name: comments
+  type: string
+  default: Initial Comment
+- name: recordid
+  type: string
+  default: f5012f5c-f67f-f011-b4cb-000d3acb8d09  
+- name: projectid
+  type: string
+  default: 3b38c368-9819-ef11-840a-00224896d38d
+- name: queuedbyname
+  type: string
+  default:  Main User
+- name: queuedbyemail
+  type: string
+  default: pipelineuser@pipeline.onmicrosoft.com
+- name: pipelinepowerautomate
+  type: string
+  default: https://e1b156e7f796ed098029b6d8b744c1.c4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/98e2fb874c1b475b939e913bfcdba113/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QHmZk27n8hCCqjbR5p8F6URGigV9rqJG8O-FAgtamYE
+- name: components
+  type: object
+  default:
+   - type: solution
+     name: SolutionName
+     datalocation: 
+     schemafilelocation: 
+     schemaname: Bug26
+     currentversion: 1.0.1.0
+     version: 1.0.1.1
+     source: Dev SPN Connection
+     target: Packaging SPN Connection
+     managed: False
+     devopslocation: deployment/solutions/unmanaged
+     order: 1
+     componentvalue: 
+     configfile: 
+     skiplowerversion: false  
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  -group: 'cicd_deployment_app'
+
+stages:
+  - template: ../deployment/configuration/templates/stages/import-orchestrator-stage.yml
+    parameters:
+      comments: "${{ parameters.comments }}"
+      recordid: "${{ parameters.recordid }}"
+      projectid: "${{ parameters.projectid }}"
+      queuedbyname: "${{ parameters.queuedbyname }}"
+      queuedbyemail: "${{ parameters.queuedbyemail }}"
+      pipelinepowerautomate: "${{ parameters.pipelinepowerautomate }}"
+      components: "${{ parameters.components }}"
